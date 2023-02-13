@@ -12,7 +12,7 @@ import {
     orderBy,
     serverTimestamp,
 } from 'firebase/firestore';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword,signOut,signInWithEmailAndPassword } from 'firebase/auth';
 
 const firebaseConfig = {
     apiKey: 'AIzaSyAZt50RND3SOOMrYAwM_LOQYrFcwpbceVU',
@@ -45,11 +45,11 @@ const q = query(
 
 //get colection data
 
-onSnapshot(colRef, (snapshot) => {
+ onSnapshot(colRef, async(snapshot) => {
     let books = [];
-    snapshot.docs.forEach((doc) => {
+   await snapshot.docs.forEach((doc) => {
         books.push({ ...doc.data(), id: doc.id });
-    });
+    }); 
     bookList.innerHTML = books.map((book) => {
         return `<li>${book.title} by ${book.author}`;
     });
@@ -112,3 +112,27 @@ signupForm.addEventListener('submit', (e) => {
     })
 
 });
+
+//logging in and out
+
+
+const logoutButton = document.querySelector('.logout');
+logoutButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    signOut(auth).then(() => {
+        alert('user logged out successfully');
+    }).catch((err) => {
+        alert(err.message);
+    })
+})
+
+const loginForm = document.querySelector('.login');
+loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = loginForm.email.value;
+    const password = loginForm.password.value;
+    signInWithEmailAndPassword(auth, email, password).then((cred) => {
+    console.log(cred.user);
+    newUser.innerHTML = `<p>user logged in with email: ${cred.user.email}</p>`;
+    loginForm.reset();
+})});
