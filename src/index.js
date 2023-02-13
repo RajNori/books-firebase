@@ -1,5 +1,16 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs,addDoc,deleteDoc,doc } from 'firebase/firestore';
+import { getFirestore, 
+ collection, 
+ getDocs,
+ addDoc,
+ deleteDoc,
+ doc,
+ onSnapshot,
+query,
+where,
+orderBy,
+serverTimestamp
+ } from 'firebase/firestore';
 
 const firebaseConfig = {
     apiKey: 'AIzaSyAZt50RND3SOOMrYAwM_LOQYrFcwpbceVU',
@@ -15,31 +26,43 @@ initializeApp(firebaseConfig);
 //init services
 const db = getFirestore();
 
+const bookList = document.querySelector('#books');
+
 //collection ref
 const colRef = collection(db, 'books');
 console.clear();
+
+//queries
+const q = query(colRef,where("author","==","Frederick Forsyth"), orderBy("title"));
+
+
 //get colection data
-getDocs(colRef)
-    .then((snapshot) => {
-   let books = [];
-     snapshot.forEach((doc) => {
-       books.push({ id: doc.id, ...doc.data()});
-      })
-     console.log(books)
-    }).catch((err) => {
-        console.log(err)
-    })
+
+ onSnapshot(colRef, (snapshot) => {
+        let books = [];
+        snapshot.docs.forEach((doc) => {
+          books.push({  ...doc.data(),id: doc.id});
+         })
+        bookList.innerHTML = books.map((book) => {
+            return `<li>${book.title} by ${book.author}`
+        })
+       })
+
+
     //add docs
     const addBook = document.querySelector('.add');
     addBook.addEventListener('submit', (e) => {
         e.preventDefault();
         addDoc(colRef, {
          title: addBook.title.value,
-         author: addBook.author.value
+         author: addBook.author.value,
+         createdAt: serverTimestamp()
         }).then(() => {
          addBook.reset();
         })
        })
+
+      
       
 
     //del docs
